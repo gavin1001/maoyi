@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yy.maoyi.dao.OperaLogDao" >
+
+    <resultMap id="operaResultMap" type="com.yy.maoyi.entity.User">
+        <result column="uname" property="uname" jdbcType="VARCHAR" />
+        <result column="operaDate" property="operaDate" jdbcType="TIMESTAMP" />
+        <result column="operaNum" property="operaNum" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <sql id="opera_col_list">
+        uname,operaDate,operaNum
+    </sql>
+
+    <insert  id="add" parameterType="com.yy.maoyi.entity.OperaLog">
+        INSERT INTO maoyi_log(uname,operaDate,operaNum)
+        VALUES(#{uname,jdbcType=VARCHAR}, #{operaDate,jdbcType=TIMESTAMP}, #{operaNum,jdbcType=VARCHAR})
+    </insert>
+
+</mapper>

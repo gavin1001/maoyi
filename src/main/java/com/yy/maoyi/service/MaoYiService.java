@@ -13,6 +13,8 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -30,12 +32,15 @@ import com.yy.maoyi.tools.CryptUtils;
 import com.yy.maoyi.tools.HttpTransfer;
 import com.yy.maoyi.tools.JsonUtils;
 import com.yy.maoyi.tools.https.HttpClientUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MaoYiService {
 
 	public static final String AI = "I";
 	public static final String AE = "E";
-	
+
+	private static final Logger logger = LoggerFactory.getLogger(MaoYiService.class);
 	
 	public static Map<String, String> headerMap = new HashMap<String, String>();
 	public Map<String, String> getHeader() {
@@ -58,9 +63,6 @@ public class MaoYiService {
 	
 	
 	public String run(String username,String psw,String number) {
-		
-		
-		
 		
 		return "-1";
 	}
@@ -104,7 +106,7 @@ public class MaoYiService {
 		sBuffer.append("\"cusIEFlag\":").append("\"").append(typeStr).append("\",");
 		sBuffer.append("\"operationType\":").append("\"").append("cusEdit").append("\"");
 		sBuffer.append("}");
-		System.out.println(sBuffer.toString());
+		logger.info("组装成的查询条件:[{}]",sBuffer.toString());
 //		String akString = HttpTransfer.doPost(urlString, headerMap, dataMap);
 //		System.out.println(headerMap.get("cookie"));
 		Map<String, String> headMap = new HashMap<String, String>();
@@ -113,14 +115,14 @@ public class MaoYiService {
 		HttpResponse response = HttpClientUtil.getResponseByPost1(urlString, headMap, sBuffer.toString(), "UTF-8");
 		String dataString = HttpClientUtil.doData(response, "UTF-8");
 //		dataString = dataString.replaceAll("\\\\\"", "\\\"");
-		System.out.println(dataString);
-		ReturnData rData = JsonUtils.jsonToObject(dataString, ReturnData.class);
+		logger.info("returnData:[{}]",dataString);
+//		ReturnData rData = JsonUtils.jsonToObject(dataString, ReturnData.class);
 		
 //		parseModel(rData);
 		return dataString;
 	}
 	
-	
+	/*
 	public String parseModel(ReturnData re) {
 		
 		PreDecHeadVo phv = re.getData().getPreDecHeadVo();
@@ -233,7 +235,7 @@ public class MaoYiService {
 		
 		return "";
 	}
-	
+	*/
 	
 	
 	private String paseCookie(String cookie) throws ClientProtocolException, IOException {
@@ -246,20 +248,15 @@ public class MaoYiService {
 	}
 	
 	public Map<String, String> getLogin() throws Exception{
-		
 		String urString = "https://app.singlewindow.cn/cas/login?service=https%3A%2F%2Fswapp.singlewindow.cn%2Fdeskserver%2Fj_spring_cas_security_check";
 		HttpResponse response = HttpClientUtil.getResponseByGet(urString, headerMap,null, "UTF-8");
 		String dataString2 = HttpClientUtil.doData(response, "UTF-8");
-		
 		int codeString = response.getStatusLine().getStatusCode();
-		
 		Header[] headers = response.getHeaders("Set-Cookie");
-		
 		String headerString = "";
 		for(Header he:headers) {
 			headerString+=he.getValue();
 		}
-		
 		if(headers!=null)
 			headerMap.put("Cookie", dualCookie(headerString));
 		Document doc = Jsoup.parse(dataString2);
@@ -275,7 +272,7 @@ public class MaoYiService {
 		map.put("It", itValue);
 		map.put("execution", exeValue);
 		map.put("vert", vert);
-		System.out.println("------------------------------------------"+vert);
+		logger.info("vert:[{}]",vert);
 		return map;
 	}
 	
@@ -324,7 +321,7 @@ public class MaoYiService {
 			String arg[] = headerString.split(";");
 			headerString = "";
 			headerString+=arg[0]+";"+arg[1]+";";
-			System.out.println(headerString);
+//			System.out.println(headerString);
 			headerMap.put("Cookie", headerString);
 		}
 //		maoYiService.getData("I20190000224038701");
@@ -352,8 +349,8 @@ public class MaoYiService {
 		hMap.put("lpid", "P1");
 		hMap.put("_eventId", "submit");
 		hMap.put("name", "");
-		
-		System.out.println(vert+"==="+it+"----开始执行验证的url");
+
+		logger.info(vert+"==="+it+"----开始执行验证的url");
 		HttpResponse response = HttpClientUtil.getResponseByPost(urlString, headerMap, hMap, "UTF-8");
 		
 		if(response.getStatusLine().getStatusCode()==302) {
@@ -374,17 +371,86 @@ public class MaoYiService {
 			return header.getValue();
 		}else if(response.getStatusLine().getStatusCode()==200){
 			System.out.println("执行失败");
+			String s = HttpClientUtil.doData(response, "UTF-8");
+			
+			//解析返回值判断错误原因
+			
+			int value = this.parseReData(s);
+			if(value==-1) {//用户名和密码错误
+				return "-1";
+			} 
+			
 			if(runTime<5) {
-				System.out.println("开始第"+(runTime++)+"次执行重试");
+				logger.info("开始第[{}]次执行重试",runTime++);
 				String vertString = getVert();
 				return this.getLoginRequest(username, psw, vertString, it, execution,runTime++);
 			}
-			return "-1";
+			
+			if(value==-2){
+				return "-2";
+			}
+			if(value==-4) {
+				return "-4";
+			}
+			
+			return "-3";
 		}
 		
-		return "-1";
+		return "-3";
 	}
 	
+	private int parseReData(String s) {
+		Document doc = Jsoup.parse(s);
+		int value=0;
+		
+		if(s.contains("请使用浏览器登录并完成实名认证")) {
+			return -4;
+		}
+		
+		Elements eleIts = doc.select("div[id=msg]");
+		String itValue = eleIts.get(0).text();
+		if(itValue!=null) {
+			String it[] = itValue.split("<br>");
+			if(it.length==1) {
+				String realString = itValue.split("|")[0];
+				if(Objects.equals(realString, "1")) {
+					//用户名或密码错误
+					value=-1;
+				}else if(Objects.equals(realString, "2")){
+					//验证码错误
+					value=-2;
+				}
+				return value;
+			}else {
+				boolean flag = false;
+				for(String relString:it) {
+					
+					String realString = relString.split("|")[0];
+					if(Objects.equals(realString, "1")) {
+						//用户名或密码错误
+						flag =true;
+						value=-1;
+					}else if(Objects.equals(realString, "2")){
+						//验证码错误
+						value=-2;
+					}
+					
+				}
+				
+				if(flag==true) {
+					return -1;
+				}else {
+					return value;
+				}
+				
+			}
+			
+		}
+		
+		return value;
+	}
+
+
 	private static boolean match(String regex, String str) {
 		Pattern pattern = Pattern.compile(regex);
 		Matcher matcher = pattern.matcher(str);
@@ -411,8 +477,8 @@ public class MaoYiService {
 		CaptchaUtil.removeBackground(byteArrayOutputStream);
 		File file2 = new File(CaptchaUtil.PATH+"/amd.jpg");
 		String s = CaptchaUtil.getCaptcha(file2,4);
-		
-		System.out.println(s);
+
+		logger.info("picNum:[{}]",s);
 		String parentString = "[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9]";
 		if(match(parentString, s)) {
 //			HttpClientUtil.SetCookie(dualCookie(header.getValue()));

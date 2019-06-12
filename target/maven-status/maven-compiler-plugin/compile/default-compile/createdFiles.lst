@@ -2,6 +2,7 @@ com\yy\maoyi\service\MaoYiService.class
 com\yy\maoyi\tools\JsonUtils.class
 com\yy\maoyi\tools\WordEncode.class
 com\yy\maoyi\entity\PreDecDocVo.class
+com\yy\maoyi\tools\CaptchaUtil.class
 com\yy\maoyi\tools\JsonObjectMapper$1.class
 com\yy\maoyi\entity\Datee.class
 com\yy\maoyi\service\UserCountService.class
@@ -23,3 +24,4 @@ com\yy\maoyi\tools\CryptUtils.class
 com\yy\maoyi\tools\DataUtils.class
 com\yy\maoyi\tools\HttpTransfer.class
 com\yy\maoyi\tools\https\HttpClientUtil.class
+com\yy\maoyi\service\Test.class
