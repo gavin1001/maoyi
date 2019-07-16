@@ -1,39 +1,30 @@
 package com.yy.maoyi.service;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.cookie.SetCookie;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-
-import com.yy.maoyi.entity.CusLicenseListVo;
-import com.yy.maoyi.entity.DecMergeListVo;
-import com.yy.maoyi.entity.PreDecHeadVo;
-import com.yy.maoyi.entity.ReturnData;
-import com.yy.maoyi.tools.CaptchaUtil;
-import com.yy.maoyi.tools.CryptUtils;
-import com.yy.maoyi.tools.HttpTransfer;
-import com.yy.maoyi.tools.JsonUtils;
-import com.yy.maoyi.tools.https.HttpClientUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.yy.maoyi.tools.CaptchaUtil;
+import com.yy.maoyi.tools.CryptUtils;
+import com.yy.maoyi.tools.WordEncode;
+import com.yy.maoyi.tools.https.HttpClientUtil;
 
 public class MaoYiService {
 
@@ -107,20 +98,74 @@ public class MaoYiService {
 		sBuffer.append("\"operationType\":").append("\"").append("cusEdit").append("\"");
 		sBuffer.append("}");
 		logger.info("组装成的查询条件:[{}]",sBuffer.toString());
-//		String akString = HttpTransfer.doPost(urlString, headerMap, dataMap);
-//		System.out.println(headerMap.get("cookie"));
 		Map<String, String> headMap = new HashMap<String, String>();
 		headMap.put("Cookie", headerMap.get("Cookie"));
 		headMap.put("Content-Type","text/html");
 		HttpResponse response = HttpClientUtil.getResponseByPost1(urlString, headMap, sBuffer.toString(), "UTF-8");
 		String dataString = HttpClientUtil.doData(response, "UTF-8");
-//		dataString = dataString.replaceAll("\\\\\"", "\\\"");
 		logger.info("returnData:[{}]",dataString);
-//		ReturnData rData = JsonUtils.jsonToObject(dataString, ReturnData.class);
 		
-//		parseModel(rData);
 		return dataString;
 	}
+
+
+	//查询报关数据的列表项目
+	//maoYiService.getData("I","2019-07-01","2019-07-03");
+	public String getCusList(String flag,String startDate,String endDate){
+
+		//默认情况下最大只支持7天的跨度，如果需要更打的跨度  在此需要进行多次请求拼接，现只实现最大7天的；
+
+		String stInfo = "{\"cusCiqNoHidden\":\"\",\"dclTrnRelFlagHidden\":\"\",\"transPreNoHidden\":\"\",\"cusOrgCode\":\"\",\"dclTrnRelFlag\":\"0\",\"cusDecStatus\":\"\",\"etpsCategory\":\"A\",\"cusIEFlag\":\""+flag+"\",\"entryId\":\"\",\"cusCiqNo\":\"\",\"cnsnTradeCode\":\"\",\"billNo\":\"\",\"isBillNoExactQuery\":\"0\",\"customMaster\":\"\",\"tableFlag\":\"0\",\"updateTime\":\""+startDate+"\",\"updateTimeEnd\":\""+endDate+"\",\"queryPage\":\"cusBasicQuery\",\"operType\":\"0\"}\n" ;
+
+		stInfo = WordEncode.encode(stInfo);
+		stInfo = WordEncode.encode(stInfo);
+		System.out.println(stInfo);
+
+		String url = "https://swapp.singlewindow.cn/decserver/sw/dec/merge/cusQuery?limit=50&offset=0&stName=updateTime&stOrder=desc&decStatusInfo="+stInfo+"&_=1562996760152";
+
+		Map<String, String> headMap = new HashMap<String, String>();
+		headMap.put("Cookie", headerMap.get("Cookie"));
+		headMap.put("Content-Type","application/json");
+		HttpResponse response = HttpClientUtil.getResponseByGet(url, headMap, null, "UTF-8");
+		String dataString = HttpClientUtil.doData(response, "UTF-8");
+		logger.info("returnData:[{}]",dataString);
+		return dataString;
+
+	}
+
+
+
+	//通过统一编号查询报关状态
+	public String getDecByCus(String cusCiqNo){
+
+		String url = "https://swapp.singlewindow.cn/decserver/sw/dec/common/queryCusDecRet?cusCiqNo="+cusCiqNo+"&limit=10&offset=0&stName=noticeDate&stOrder=desc&_=1563013948406";
+		Map<String, String> headMap = new HashMap<String, String>();
+		headMap.put("Cookie", headerMap.get("Cookie"));
+		headMap.put("Content-Type","application/json");
+		HttpResponse response = HttpClientUtil.getResponseByGet(url, headMap, null, "UTF-8");
+		String dataString = HttpClientUtil.doData(response, "UTF-8");
+		logger.info("returnData:[{}]",dataString);
+		return dataString;
+
+	}
+	
+	
+	public InputStream downFile(String cusCiqNo) throws UnsupportedOperationException, IOException {
+		String url = "https://swapp.singlewindow.cn/decserver/entries/ftl/1/0/0/"+cusCiqNo+".pdf";
+		System.out.println(url);
+		Map<String, String> headMap = new HashMap<String, String>();
+		headMap.put("Cookie", headerMap.get("Cookie"));
+		headMap.put("Content-Type","application/pdf;charset=UTF-8");
+		HttpResponse response = HttpClientUtil.getResponseByGet(url, headMap, null, "UTF-8");
+		InputStream is =  response.getEntity().getContent(); 
+		
+		return is;
+	}
+	
+
+
+
+
 	
 	/*
 	public String parseModel(ReturnData re) {
@@ -290,19 +335,22 @@ public class MaoYiService {
 	
 	public static void main(String[] args) throws Exception {
 		MaoYiService maoYiService = new MaoYiService();
-//		maoYiService.paseCookie("route1sw_portal=f6672fad7cd5e1f20e91179b25df7656; clientlanguage=zh_CN; JSESSIONID=9D54B18ED22CD08217D4990A8EA867AB");
-//		maoYiService.getData("I20190000224038701");
+
+
+
+		maoYiService.paseCookie("route1sw_portal=f6672fad7cd5e1f20e91179b25df7656; clientlanguage=zh_CN; JSESSIONID=9D54B18ED22CD08217D4990A8EA867AB");
+		maoYiService.getData("I20190000224038701");
 		
 		String username = "zdbg1231";
 		String psw = "!zdbg1231";
 		String pswString = CryptUtils.GetMD5Code(psw);
 		maoYiService.getHeader();
-		
+
 		Map<String, String> loginMap = maoYiService.getLogin();
 		String itString = loginMap.get("It");
 		String execution = loginMap.get("execution");
 		String vertString = loginMap.get("vert");
-		
+
 		String urlString = maoYiService.getLoginRequest(username,pswString,vertString,itString,execution,0);
 		headerMap.remove("Content-Type");
 		headerMap.remove("Origin");
@@ -310,7 +358,7 @@ public class MaoYiService {
 		headerMap.put("Host","swapp.singlewindow.cn");
 		headerMap.put("Upgrade-Insecure-Requests", "1");
 		HttpResponse response = HttpClientUtil.getResponseByPost(urlString, headerMap, null, "UTF-8");
-	
+
 		if(response.getStatusLine().getStatusCode()==302) {
 			Header[] headers = response.getHeaders("Set-Cookie");
 			String headerString = "";
@@ -379,6 +427,48 @@ public class MaoYiService {
 			if(value==-1) {//用户名和密码错误
 				return "-1";
 			} 
+			if(value==-4) {
+				logger.info("进入需要实名验证提示...");
+				int index = s.indexOf("location.href=");
+				s = s.substring(index,s.length());
+				int k = s.indexOf(";");
+				s = s.substring(0,k);
+//				System.out.println(s);
+				index = s.indexOf("https");
+				s = s.substring(index,s.length()-1);
+				
+				Map<String,String> map = new HashMap<String, String>();
+				map.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3");
+				map.put("Accept-Encoding", "gzip, deflate,");
+				map.put("Accept-Language", "zh-CN,zh;q=0.9");
+				map.put("Cache-Control", "no-cache");
+				map.put("Connection", "keep-alive");
+				map.put("Host", "swapp.singlewindow.cn");
+				map.put("Pragma", "no-cache");
+				map.put("Referer", "https://app.singlewindow.cn/cas/login?service=https://swapp.singlewindow.cn/deskserver/j_spring_cas_security_check");
+				map.put("Upgrade-Insecure-Requests", "1");
+				map.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36");
+				
+				HttpResponse response1 = HttpClientUtil.getResponseByPost(s, map, null,"UTF-8");
+				
+				if(response1.getStatusLine().getStatusCode()==302) {
+					Header[] headers = response1.getHeaders("Set-Cookie");
+					String headerString = "";
+					for(Header h:headers) {
+						headerString+=h.getValue();
+					}
+					headerString = this.dualCookie(headerString);
+					String arg[] = headerString.split(";");
+					headerString = "";
+					headerString+=arg[0]+";"+arg[1]+";";
+					logger.info("header:[{}]",headerString);
+					MaoYiService.headerMap.put("Cookie", headerString);
+				}
+				
+//				System.out.println(s);
+				
+				return "-4";
+			}
 			
 			if(runTime<5) {
 				logger.info("开始第[{}]次执行重试",runTime++);
@@ -388,9 +478,6 @@ public class MaoYiService {
 			
 			if(value==-2){
 				return "-2";
-			}
-			if(value==-4) {
-				return "-4";
 			}
 			
 			return "-3";
@@ -487,6 +574,31 @@ public class MaoYiService {
 			return getVert();
 		}
 		
+	}
+
+
+	public String getGoodsType(String goodsNum, String inOutFlag) {
+		if(goodsNum.length()!=10) {
+			return "请输入10位数字";
+		}
+		String typeString = "I";
+		if(Objects.equals(inOutFlag, "I")) {
+			//进口
+			typeString = "I";
+		}else {
+			//出口
+			typeString = "E";
+		}
+		String urlString =  "https://swapp.singlewindow.cn/decserver/sw/dec/common/getMerchElement";
+		StringBuffer sBuffer = new StringBuffer();
+		sBuffer.append("{");
+		sBuffer.append("\"codeTs\":").append("\"").append(goodsNum).append("\",");
+		sBuffer.append("\"ieFlag\":").append("\"").append("I").append("\"");
+		sBuffer.append("}");
+		HttpResponse response = HttpClientUtil.getResponseByPost1(urlString, headerMap, sBuffer.toString(), "UTF-8");
+		String dataString = HttpClientUtil.doData(response, "UTF-8");
+		logger.info("returnData:[{}]",dataString);
+		return dataString;
 	}
 	
 	
