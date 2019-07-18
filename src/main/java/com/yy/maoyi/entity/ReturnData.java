@@ -1,7 +1,6 @@
 package com.yy.maoyi.entity;
 
 import java.util.List;
-import java.util.Map;
 
 public class ReturnData {
 
@@ -30,10 +29,10 @@ public class ReturnData {
 	public void setErrors(String errors) {
 		this.errors = errors;
 	}
-	public List getMessageList() {
+	public List<Object> getMessageList() {
 		return messageList;
 	}
-	public void setMessageList(List messageList) {
+	public void setMessageList(List<Object> messageList) {
 		this.messageList = messageList;
 	}
 	public String getMessageType() {
@@ -52,7 +51,7 @@ public class ReturnData {
 		this.data = data;
 	}
 	private String errors;
-	private List messageList;
+	private List<Object> messageList;
 	private String messageType;
 	
 }

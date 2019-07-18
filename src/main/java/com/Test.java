@@ -2,8 +2,6 @@ package com;
 
 import java.util.List;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
 import com.yy.maoyi.entity.CusLicenseListVo;
 import com.yy.maoyi.entity.ReturnData;
 import com.yy.maoyi.tools.JsonUtils;

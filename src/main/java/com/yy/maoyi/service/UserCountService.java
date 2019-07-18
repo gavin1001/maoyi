@@ -31,6 +31,7 @@ public class UserCountService {
 			write(file);
 		}else {
 			try {
+				@SuppressWarnings("unused")
 				boolean flag = file.createNewFile();
 				write(file);
 			} catch (IOException e) {

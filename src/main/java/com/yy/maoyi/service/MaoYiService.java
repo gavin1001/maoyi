@@ -1,11 +1,9 @@
 package com.yy.maoyi.service;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -296,7 +294,7 @@ public class MaoYiService {
 		String urString = "https://app.singlewindow.cn/cas/login?service=https%3A%2F%2Fswapp.singlewindow.cn%2Fdeskserver%2Fj_spring_cas_security_check";
 		HttpResponse response = HttpClientUtil.getResponseByGet(urString, headerMap,null, "UTF-8");
 		String dataString2 = HttpClientUtil.doData(response, "UTF-8");
-		int codeString = response.getStatusLine().getStatusCode();
+//		int codeString = response.getStatusLine().getStatusCode();
 		Header[] headers = response.getHeaders("Set-Cookie");
 		String headerString = "";
 		for(Header he:headers) {
@@ -593,7 +591,7 @@ public class MaoYiService {
 		StringBuffer sBuffer = new StringBuffer();
 		sBuffer.append("{");
 		sBuffer.append("\"codeTs\":").append("\"").append(goodsNum).append("\",");
-		sBuffer.append("\"ieFlag\":").append("\"").append("I").append("\"");
+		sBuffer.append("\"ieFlag\":").append("\"").append(typeString).append("\"");
 		sBuffer.append("}");
 		HttpResponse response = HttpClientUtil.getResponseByPost1(urlString, headerMap, sBuffer.toString(), "UTF-8");
 		String dataString = HttpClientUtil.doData(response, "UTF-8");

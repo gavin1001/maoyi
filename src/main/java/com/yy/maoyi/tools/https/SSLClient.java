@@ -18,6 +18,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
  * @date 2017年2月7日 下午1:42:07 
  *  
  */
+@SuppressWarnings("deprecation")
 public class SSLClient extends DefaultHttpClient {
     public SSLClient() throws Exception{
         super();

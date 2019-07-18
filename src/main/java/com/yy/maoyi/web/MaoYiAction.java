@@ -1,8 +1,7 @@
 package com.yy.maoyi.web;
 
-import java.io.InputStream;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -14,16 +13,12 @@ import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.spi.LocationAwareLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.UnknownHttpStatusCodeException;
 
 import com.yy.maoyi.service.MaoYiService;
-import com.yy.maoyi.service.UserCountService;
 import com.yy.maoyi.tools.CryptUtils;
 import com.yy.maoyi.tools.https.HttpClientUtil;
 
@@ -31,6 +26,9 @@ import com.yy.maoyi.tools.https.HttpClientUtil;
 @RequestMapping("maoyi")
 public class MaoYiAction {
 
+	
+	protected static Map<String,String> sessIdMap = new HashMap<String, String>();
+	
 	protected static final Logger logger = LoggerFactory.getLogger(MaoYiAction.class);
 
 
@@ -142,6 +140,11 @@ public class MaoYiAction {
 	
 
 	protected LoginModel parseLogin(String user, String password) throws Exception {
+		
+		
+		
+		
+		
 		LoginModel  lModel = new LoginModel();
 		
 		String valueCode = "";
@@ -217,6 +220,9 @@ public class MaoYiAction {
 			headerString = "";
 			headerString+=arg[0]+";"+arg[1]+";";
 			logger.info("header:[{}]",headerString);
+			
+			sessIdMap.put(username, headerString);
+			
 			MaoYiService.headerMap.put("Cookie", headerString);
 			lModel.setStatus("1");
 			lModel.setMessage("success");

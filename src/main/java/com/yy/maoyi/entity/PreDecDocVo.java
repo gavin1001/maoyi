@@ -23,10 +23,10 @@ public class PreDecDocVo {
 	public void setAttFmtTypeCode(String attFmtTypeCode) {
 		this.attFmtTypeCode = attFmtTypeCode;
 	}
-	public List getDelList() {
+	public List<Object> getDelList() {
 		return delList;
 	}
-	public void setDelList(List delList) {
+	public void setDelList(List<Object> delList) {
 		this.delList = delList;
 	}
 	public String getAttEdocId() {
@@ -145,7 +145,7 @@ public class PreDecDocVo {
 	}
 	private String entOrigFileName;
 	private String attFmtTypeCode;
-	private List delList;
+	private List<Object> delList;
 	private String attEdocId;
 	private String uploadOpTypeCode;
 	private String bizTypeCode;

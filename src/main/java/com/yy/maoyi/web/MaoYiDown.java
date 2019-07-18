@@ -1,9 +1,6 @@
 package com.yy.maoyi.web;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -33,7 +30,7 @@ public class MaoYiDown extends MaoYiAction{
 			return;
 		}
 		InputStream is = maoYiService.downFile(queryNum);
-		byte[] buffer = readInputStream(maoYiService.downFile(queryNum));
+		byte[] buffer = readInputStream(is);
 
 		if (null != buffer && buffer.length > 0) {
 			// 清空response

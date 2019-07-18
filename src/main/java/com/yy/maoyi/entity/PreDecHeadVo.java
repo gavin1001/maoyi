@@ -1,6 +1,5 @@
 package com.yy.maoyi.entity;
 
-import java.util.List;
 
 public class PreDecHeadVo {
 
