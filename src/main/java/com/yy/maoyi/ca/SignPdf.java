@@ -68,7 +68,7 @@ public class SignPdf {
 			sap.setSignatureGraphic(image);
 			sap.setRenderingMode(RenderingMode.GRAPHIC);
 			// 是对应x轴和y轴坐标
-			sap.setVisibleSignature(new Rectangle(x + 985, 75, x + 185, 0 + 38), 1,
+			sap.setVisibleSignature(new Rectangle(975, 40, 110, 170), 1,
 					UUID.randomUUID().toString().replaceAll("-", ""));
 			stp.getWriter().setCompressionLevel(5);
 			ExternalDigest digest = new BouncyCastleDigest();
@@ -101,7 +101,8 @@ public class SignPdf {
 	public static void main(String[] args) throws Exception {
 		byte[] fileData = sign("123456", "e:/keystore.p12", //
 				"e:/I20190000252771651.pdf", //
-				"e:/sign.jpg", 100, 290);
+				"e:/4444.png", 100, 290);
+//				"e:/2222.jpg", 100, 290);
 		FileOutputStream f = new FileOutputStream(new File("e:/signed.pdf"));
 		f.write(fileData);
 		f.close();
