@@ -49,7 +49,7 @@ public class MaoYiDown extends MaoYiAction {
 //		is.close();
 //		fos.close();
 
-		byte[] fileData = SignPdf.sign("123456", System.getProperty("user.dir") + "/key/" + "keystore.p12", //
+		byte[] fileData = SignPdf.sign("101012", System.getProperty("user.dir") + "/key/" + "cert.p12", //
 				is, //
 				System.getProperty("user.dir") + "/icon/" + user + ".png", 100, 290);
 		if (null != fileData && fileData.length > 0) {
