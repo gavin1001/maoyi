@@ -69,7 +69,7 @@ public class SignPdf {
 			sap.setSignatureGraphic(image);
 			sap.setRenderingMode(RenderingMode.GRAPHIC);
 			// 是对应x轴和y轴坐标
-			sap.setVisibleSignature(new Rectangle(975, 40, 110, 170), 1,
+			sap.setVisibleSignature(new Rectangle(x+875, y-250, x+10, y-120), 1,
 					UUID.randomUUID().toString().replaceAll("-", ""));
 			stp.getWriter().setCompressionLevel(5);
 			ExternalDigest digest = new BouncyCastleDigest();
@@ -129,7 +129,7 @@ public class SignPdf {
 			sap.setSignatureGraphic(image);
 			sap.setRenderingMode(RenderingMode.GRAPHIC);
 			// 是对应x轴和y轴坐标
-			sap.setVisibleSignature(new Rectangle(975, 40, 110, 170), 1,
+			sap.setVisibleSignature(new Rectangle(x+875, y-250, x+10, y-120), 1,
 					UUID.randomUUID().toString().replaceAll("-", ""));
 			stp.getWriter().setCompressionLevel(5);
 			ExternalDigest digest = new BouncyCastleDigest();
@@ -160,11 +160,15 @@ public class SignPdf {
 	}
 
 	public static void main(String[] args) throws Exception {
-		byte[] fileData = sign("123456", "e:/keystore.p12", //
-				"e:/I20190000252771651.pdf", //
-				"e:/4444.png", 100, 290);
+//		byte[] fileData = sign("123456", "e:/keystore.p12", //
+//				"e:/I20190000252771651.pdf", //
+//				"e:/4444.png", 100, 290);
 //				"e:/2222.jpg", 100, 290);
-		FileOutputStream f = new FileOutputStream(new File("e:/signed.pdf"));
+		byte[] fileData = sign("101012", "d:/cert.p12", //
+				"d:/201900001699712777.pdf", //
+				"d:/zdbg1231.png", -50, 290);
+//				"e:/2222.jpg", 100, 290);
+		FileOutputStream f = new FileOutputStream(new File("d:/signed.pdf"));
 		f.write(fileData);
 		f.close();
 	}

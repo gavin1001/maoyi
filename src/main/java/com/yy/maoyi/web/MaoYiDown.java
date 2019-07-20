@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.yy.maoyi.ca.SignPdf;
 
 @Controller
-@RequestMapping("maoyiDown")
+@RequestMapping()
 public class MaoYiDown extends MaoYiAction {
 
-	@GetMapping("/downFile")
+	@GetMapping("maoyi/getPdf")
 	@ResponseBody
-	public void downFile(String user, String password, String queryNum, HttpServletResponse response) throws Exception {
+	public void downFile(String user, String password, String cusCiqNo,String isSignature,String pdfType,HttpServletResponse response) throws Exception {
 
 		LoginModel status = parseLogin(user, password);
 
@@ -30,7 +30,13 @@ public class MaoYiDown extends MaoYiAction {
 			logger.info(status.getMessage());
 			return;
 		}
-		InputStream is = maoYiService.downFile(queryNum);
+		
+		InputStream is = null;
+		if(Objects.equals(pdfType, "1")) {//报关单
+			is = maoYiService.downBGFile(cusCiqNo);
+		}else if(Objects.equals(pdfType, "2")) {//放行单
+			is = maoYiService.downFXFile(cusCiqNo);
+		}
 //		byte[] buffer = readInputStream(is);
 
 //		File file = new File(System.getProperty("user.dir") + "/file/" + queryNum + ".pdf");
@@ -48,15 +54,25 @@ public class MaoYiDown extends MaoYiAction {
 //		}
 //		is.close();
 //		fos.close();
-
-		byte[] fileData = SignPdf.sign("101012", System.getProperty("user.dir") + "/key/" + "cert.p12", //
-				is, //
-				System.getProperty("user.dir") + "/icon/" + user + ".png", 100, 290);
+		byte[] fileData = null ;
+		if(Objects.equals(isSignature, "0")) {//不签章
+			fileData = readInputStream(is);
+		}else if(Objects.equals(isSignature, "1")) {//签章
+			int x = 100;
+			int y = 290;
+			if(Objects.equals(pdfType, "2")) {
+				x = -50;
+			}
+			fileData = SignPdf.sign("101012", System.getProperty("user.dir") + "/key/" + "cert.p12", //
+					is, //
+					System.getProperty("user.dir") + "/icon/" + user + ".png", x, y);
+		}
+		
 		if (null != fileData && fileData.length > 0) {
 			// 清空response
 			response.reset();
 			// 设置response的Header
-			response.addHeader("Content-Disposition", "attachment;filename=" + queryNum + ".pdf");
+			response.addHeader("Content-Disposition", "attachment;filename=" + cusCiqNo + ".pdf");
 			response.addHeader("Content-Length", "" + fileData.length);
 			OutputStream toClient = response.getOutputStream();
 			response.setContentType("application/octet-stream");
@@ -64,7 +80,7 @@ public class MaoYiDown extends MaoYiAction {
 			toClient.flush();
 			toClient.close();
 		}
-		File file = new File(System.getProperty("user.dir") + "/file/" + queryNum + ".pdf");
+		File file = new File(System.getProperty("user.dir") + "/file/" + cusCiqNo + ".pdf");
 
 		if (file.exists()) {
 			file.delete();

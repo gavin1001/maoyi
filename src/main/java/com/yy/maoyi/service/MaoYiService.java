@@ -170,7 +170,7 @@ public class MaoYiService {
 
 	}
 
-	public InputStream downFile(String cusCiqNo) throws UnsupportedOperationException, IOException {
+	public InputStream downBGFile(String cusCiqNo) throws UnsupportedOperationException, IOException {
 		String url = "https://swapp.singlewindow.cn/decserver/entries/ftl/1/0/0/" + cusCiqNo + ".pdf";
 		System.out.println(url);
 		Map<String, String> headMap = new HashMap<String, String>();
@@ -181,6 +181,20 @@ public class MaoYiService {
 
 		return is;
 	}
+	
+	public InputStream downFXFile(String cusCiqNo) throws UnsupportedOperationException, IOException {
+		String url = "https://swapp.singlewindow.cn/decserver/ftlNotice/ftl/" + cusCiqNo + ".pdf";
+		System.out.println(url);
+		Map<String, String> headMap = new HashMap<String, String>();
+		headMap.put("Cookie", headerMap.get("Cookie"));
+		headMap.put("Content-Type", "application/pdf;charset=UTF-8");
+		HttpResponse response = HttpClientUtil.getResponseByGet(url, headMap, null, "UTF-8");
+		InputStream is = response.getEntity().getContent();
+
+		return is;
+	}
+	
+	
 
 	/*
 	 * public String parseModel(ReturnData re) {
