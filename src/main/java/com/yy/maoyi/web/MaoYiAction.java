@@ -10,6 +10,7 @@ import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,13 +27,14 @@ import com.yy.maoyi.tools.https.HttpClientUtil;
 @RequestMapping("maoyi")
 public class MaoYiAction {
 
-	private static final boolean SESSIONFLAG = false;
-
-	protected static Map<String, String> sessIdMap = new HashMap<String, String>();
-	protected static final Logger logger = LoggerFactory.getLogger(MaoYiAction.class);
+	@Value("${server.switch}")
+	private int switchs;
 
 	@Autowired
 	private UserService userService;
+
+	protected static Map<String, String> sessIdMap = new HashMap<String, String>();
+	protected static final Logger logger = LoggerFactory.getLogger(MaoYiAction.class);
 
 	@Autowired
 	private OperaLogService operaLogService;
@@ -200,7 +202,7 @@ public class MaoYiAction {
 			flag = false;
 		}
 
-		if (SESSIONFLAG == false) {
+		if (switchs == 0) {
 			flag = false;
 		}
 

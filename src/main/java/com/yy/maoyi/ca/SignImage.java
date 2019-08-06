@@ -15,7 +15,6 @@ import com.sun.image.codec.jpeg.JPEGImageEncoder;
 
 import sun.font.FontDesignMetrics;
 
-@SuppressWarnings("restriction")
 public class SignImage {
 
 	/**

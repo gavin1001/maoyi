@@ -110,12 +110,10 @@ public class MaoYiDown extends MaoYiAction {
 			toClient.close();
 		}
 		File file = new File(System.getProperty("user.dir") + "/file/" + cusCiqNo + ".pdf");
-
+		this.saveLog(cusCiqNo, status, pdfType);
 		if (file.exists()) {
 			file.delete();
 		}
-
-		this.saveLog(cusCiqNo, status, pdfType);
 		return "success";
 	}
 
