@@ -26,6 +26,8 @@ import com.yy.maoyi.tools.https.HttpClientUtil;
 @RequestMapping("maoyi")
 public class MaoYiAction {
 
+	private static final boolean SESSIONFLAG = false;
+
 	protected static Map<String, String> sessIdMap = new HashMap<String, String>();
 	protected static final Logger logger = LoggerFactory.getLogger(MaoYiAction.class);
 
@@ -56,7 +58,13 @@ public class MaoYiAction {
 
 	@GetMapping("/getData")
 	public String menuList(String user, String password, String queryNum) throws Exception {
-		LoginModel status = parseLogin(user, password);
+		User users = this.isExistUser(user, password);
+		if (Objects.equals(users.getQueryData(), "0")) {
+			logger.info("没有查询权限:[{}]", users.getUname() + "-queryData-" + users.getQueryData());
+			return "{\"ok\":false ,'code':'-1','mess':'没有查询权限'}";
+		}
+
+		LoginModel status = parseLogin(users);
 
 		if (Objects.equals(status.getStatus(), "-1")) {
 			logger.info(status.getMessage());
@@ -65,6 +73,7 @@ public class MaoYiAction {
 
 		String string = maoYiService.getData(queryNum);// ("I20190000224038701");
 		String matString = "{\"ok\":false";
+
 		if (string.startsWith(matString)) {
 			logger.info("查询内容出错:[{}]", string);
 			return string;
@@ -72,19 +81,26 @@ public class MaoYiAction {
 
 //		UserCountService ucsCountService =  new UserCountService();
 //		ucsCountService.dual(user);
+		saveLog(queryNum, status, "0");
+		return string;
+	}
+
+	protected void saveLog(String queryNum, LoginModel status, String type) {
 		OperaLog operaLog = new OperaLog();
 		operaLog.setOperaDate(new Date());
 		operaLog.setOperaNum(queryNum);
-		operaLog.setUname(user);
+		operaLog.setUname(status.getUser().getUname());
+		operaLog.setOperaType(type);
 		operaLogService.add(operaLog);
 		logger.info("将信息存入到数据库[{}]", operaLog);
-		return string;
 	}
 
 	@GetMapping("/getCusList")
 	public String getCusList(String user, String password, String flag, String startTime, String endTime)
 			throws Exception {
-		LoginModel status = parseLogin(user, password);
+		User users = this.isExistUser(user, password);
+
+		LoginModel status = parseLogin(users);
 
 		if (Objects.equals(status.getStatus(), "-1")) {
 			logger.info(status.getMessage());
@@ -98,8 +114,8 @@ public class MaoYiAction {
 
 	@GetMapping("/getDecByCus")
 	public String getDecByCus(String user, String password, String queryNum) throws Exception {
-
-		LoginModel status = parseLogin(user, password);
+		User users = this.isExistUser(user, password);
+		LoginModel status = parseLogin(users);
 
 		if (Objects.equals(status.getStatus(), "-1")) {
 			logger.info(status.getMessage());
@@ -114,8 +130,8 @@ public class MaoYiAction {
 
 	@GetMapping("/getGoodsType")
 	public String getGoodsType(String user, String password, String goodsNum, String inOutFlag) throws Exception {
-
-		LoginModel status = parseLogin(user, password);
+		User users = this.isExistUser(user, password);
+		LoginModel status = parseLogin(users);
 
 		if (Objects.equals(status.getStatus(), "-1")) {
 			logger.info(status.getMessage());
@@ -128,18 +144,22 @@ public class MaoYiAction {
 
 	}
 
-	protected LoginModel parseLogin(String user, String password) throws Exception {
+	protected User isExistUser(String user, String password) {
+		User u = new User();
+		u.setUname(user);
+		u.setPassword(password);
+		User users = userService.getUserByEntity(u);
+		return users;
+	}
+
+	protected LoginModel parseLogin(User users) throws Exception {
 		LoginModel lModel = new LoginModel();
 
 		String valueCode = "";
 		String valueName = "";
 
-		User u = new User();
-		u.setUname(user);
-		u.setPassword(password);
-		User users = userService.getUserByEntity(u);
 		if (users == null) {
-			logger.info("没有访问权限:[{},{}]", user, password);
+			logger.info("没有访问权限:[{},{}]");
 			valueCode = "001";
 			valueName = "没有权限访问";
 			String reValue = "{\"ok\":false,\"errorCode\":" + valueCode + ",\"mygType\":null,\"data\":{\"message\":"
@@ -151,7 +171,9 @@ public class MaoYiAction {
 			return lModel;
 		}
 
-		logger.info("访问校验通过:[{}],[{}]", user, password);
+		lModel.setUser(users);
+
+		logger.info("访问校验通过:[{}],[{}]", users.getVuname(), users.getVpassword());
 
 		MaoYiService maoYiService = new MaoYiService();
 
@@ -163,7 +185,7 @@ public class MaoYiAction {
 
 		// 登录缓存
 		boolean flag = false;
-		String cacheSession = sessIdMap.get(user);
+		String cacheSession = sessIdMap.get(users.getVuname());
 		if (Objects.nonNull(cacheSession)) {
 			MaoYiService.headerMap.put("Cookie", cacheSession);
 			if (maoYiService.checkLogin()) {
@@ -178,9 +200,13 @@ public class MaoYiAction {
 			flag = false;
 		}
 
+		if (SESSIONFLAG == false) {
+			flag = false;
+		}
+
 		if (flag == false) {
-			String username = user;// "zdbg1231";
-			String psw = password;// "!zdbg1231";
+			String username = users.getUname();// "zdbg1231";
+			String psw = users.getPassword();// "!zdbg1231";
 			String pswString = CryptUtils.GetMD5Code(psw);
 			maoYiService.getHeader();
 
@@ -255,6 +281,25 @@ public class MaoYiAction {
 	protected class LoginModel {
 		private String status;
 		private String message;
+		private User user;
+
+		public User getUser() {
+			return user;
+		}
+
+		public void setUser(User user) {
+			this.user = user;
+		}
+
+		public String getPassword() {
+			return password;
+		}
+
+		public void setPassword(String password) {
+			this.password = password;
+		}
+
+		private String password;
 
 		public String getStatus() {
 			return status;

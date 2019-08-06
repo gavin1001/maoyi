@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.yy.maoyi.tools.CaptchaUtil;
 import com.yy.maoyi.tools.CryptUtils;
+import com.yy.maoyi.tools.JsonUtils;
 import com.yy.maoyi.tools.WordEncode;
 import com.yy.maoyi.tools.https.HttpClientUtil;
 
@@ -70,14 +72,13 @@ public class MaoYiService {
 
 		HttpResponse response = HttpClientUtil.getResponseByGet(url, headerMap, null, "UTF-8");
 
-		String data = HttpClientUtil.doData(response,"UTF-8");
+		String data = HttpClientUtil.doData(response, "UTF-8");
 
-		if(data.startsWith("{\"allPavaVersion\":")){
+		if (data.startsWith("{\"allPavaVersion\":")) {
 			return true;
-		}else{
+		} else {
 			return false;
 		}
-
 
 	}
 
@@ -181,20 +182,41 @@ public class MaoYiService {
 
 		return is;
 	}
-	
+
 	public InputStream downFXFile(String cusCiqNo) throws UnsupportedOperationException, IOException {
-		String url = "https://swapp.singlewindow.cn/decserver/ftlNotice/ftl/" + cusCiqNo + ".pdf";
-		System.out.println(url);
 		Map<String, String> headMap = new HashMap<String, String>();
 		headMap.put("Cookie", headerMap.get("Cookie"));
+
+		String url1 = "https://swapp.singlewindow.cn/decserver/sw/dec/common/queryCusDecRetByList";
+		Map<String, String> dataMap = new HashMap<String, String>();
+
+		String datas = "{\"paraList\":[\"" + cusCiqNo + "\"]}";
+		HttpResponse res = HttpClientUtil.getResponseByPost1(url1, headMap, datas, "UTF-8");
+
+		String data = HttpClientUtil.doData(res, "UTF-8");
+		System.out.println(data);
+
+		List<Object> list = JsonUtils.jsonToArray(data, Object.class);
+		String no = "";
+		if (list.size() > 0) {
+			Map<String, Object> map = (Map<String, Object>) list.get(0);
+			List<Map<String, String>> obj = (List<Map<String, String>>) map.get("list");
+			if (obj != null) {
+				Map<String, String> m = obj.get(0);
+				no = m.get("cusRetSeqNo");
+			}
+
+		}
+
 		headMap.put("Content-Type", "application/pdf;charset=UTF-8");
+		String url = "https://swapp.singlewindow.cn/decserver/ftlNotice/ftl/" + no + ".pdf";
+		System.out.println(url);
+
 		HttpResponse response = HttpClientUtil.getResponseByGet(url, headMap, null, "UTF-8");
 		InputStream is = response.getEntity().getContent();
 
 		return is;
 	}
-	
-	
 
 	/*
 	 * public String parseModel(ReturnData re) {

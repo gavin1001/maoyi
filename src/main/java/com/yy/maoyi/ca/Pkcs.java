@@ -180,10 +180,10 @@ public class Pkcs {
 		// CN: 名字与姓氏 OU : 组织单位名称
 		// O ：组织名称 L : 城市或区域名称 E : 电子邮件
 		// ST: 州或省份名称 C: 单位的两字母国家代码
-		String issuerStr = "CN=在线医院,OU=gitbook研发部,O=gitbook有限公司,C=CN,E=gitbook@sina.com,L=北京,ST=北京";
-		String subjectStr = "CN=huangjinjin,OU=gitbook研发部,O=gitbook有限公司,C=CN,E=huangjinjin@sina.com,L=北京,ST=北京";
-		String certificateCRL = "https://gitbook.cn";
-		Map<String, byte[]> result = createCert("123456", issuerStr, subjectStr, certificateCRL);
+		String issuerStr = "CN=shengyang,OU=shengyang研发部,O=shengyang有限公司,C=CN,E=shengyang@sina.com,L=北京,ST=北京";
+		String subjectStr = "CN=shengyang,OU=shengyang研发部,O=shengyang有限公司,C=CN,E=shengyang@sina.com,L=北京,ST=北京";
+		String certificateCRL = "https://shengyang.cn";
+		Map<String, byte[]> result = createCert("101012", issuerStr, subjectStr, certificateCRL);
 
 		FileOutputStream outPutStream = new FileOutputStream("e:/keystore.p12"); // ca.jks
 		outPutStream.write(result.get("keyStoreData"));

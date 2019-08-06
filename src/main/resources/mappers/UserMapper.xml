@@ -8,15 +8,16 @@
     </resultMap>
 
     <sql id="user_col_list">
-        uname,password
+        uname,password,queryData,downBG,downFX,vuname,vpassword
     </sql>
 
     <select id="getUserByEntity" resultMap="userResultMap" parameterType="com.yy.maoyi.entity.User">
         SELECT
         <include refid="user_col_list" />
         from maoyi_u
-        where uname = #{uname,jdbcType=VARCHAR}
-            and  password = #{password,jdbcType=VARCHAR}
+        where (uname = #{uname,jdbcType=VARCHAR}
+            and  password = #{password,jdbcType=VARCHAR}) or (vuname = #{uname,jdbcType=VARCHAR}
+            and  vpassword = #{password,jdbcType=VARCHAR})
     </select>
 
 </mapper>

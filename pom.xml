@@ -192,6 +192,23 @@
 					<fork>true</fork>
 				</configuration>
 			</plugin>
+			
+			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                    <compilerArguments>
+                        <verbose/>
+                        <bootclasspath>E:\Program Files\Java\jdk1.8.0_211\jre\lib\rt.jar;E:\Program Files\Java\jdk1.8.0_211\jre\lib\jce.jar</bootclasspath>
+					</compilerArguments>
+                </configuration>
+            </plugin>
+			
+			
+			
 		</plugins>
 	</build>
 

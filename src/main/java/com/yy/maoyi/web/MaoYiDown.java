@@ -15,26 +15,55 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.yy.maoyi.ca.SignPdf;
+import com.yy.maoyi.entity.User;
 
 @Controller
 @RequestMapping()
 public class MaoYiDown extends MaoYiAction {
 
+	/**
+	 * 
+	 * @param user
+	 * @param password
+	 * @param cusCiqNo
+	 * @param isSignature
+	 * @param pdfType     1:报关单 2：放行单
+	 * @param response
+	 * @throws Exception
+	 */
 	@GetMapping("maoyi/getPdf")
 	@ResponseBody
-	public void downFile(String user, String password, String cusCiqNo,String isSignature,String pdfType,HttpServletResponse response) throws Exception {
-
-		LoginModel status = parseLogin(user, password);
-
-		if (Objects.equals(status.getStatus(), "-1")) {
-			logger.info(status.getMessage());
-			return;
-		}
-		
+	public String downFile(String user, String password, String cusCiqNo, String isSignature, String pdfType,
+			HttpServletResponse response) throws Exception {
+		User users = this.isExistUser(user, password);
+		LoginModel status = null;
 		InputStream is = null;
-		if(Objects.equals(pdfType, "1")) {//报关单
+		if (Objects.equals(pdfType, "1")) {// 报关单
+			if (Objects.equals(users.getDownBG(), "0")) {
+				logger.info("没有下载报关单的权限，用户名为:" + user);
+				return "没有下载报关单的权限，用户名为:" + user;
+			}
+
+			status = parseLogin(users);
+			if (Objects.equals(status.getStatus(), "-1")) {
+				logger.info(status.getMessage());
+				return "查询出问题";
+			}
+
 			is = maoYiService.downBGFile(cusCiqNo);
-		}else if(Objects.equals(pdfType, "2")) {//放行单
+		} else if (Objects.equals(pdfType, "2")) {// 放行单
+
+			if (Objects.equals(users.getDownFX(), "0")) {
+				logger.info("没有下载放行单的权限，用户名为:" + user);
+				return "没有下载放行单的权限，用户名为:" + user;
+			}
+
+			status = parseLogin(users);
+			if (Objects.equals(status.getStatus(), "-1")) {
+				logger.info(status.getMessage());
+				return "查询出问题";
+			}
+
 			is = maoYiService.downFXFile(cusCiqNo);
 		}
 //		byte[] buffer = readInputStream(is);
@@ -54,20 +83,20 @@ public class MaoYiDown extends MaoYiAction {
 //		}
 //		is.close();
 //		fos.close();
-		byte[] fileData = null ;
-		if(Objects.equals(isSignature, "0")) {//不签章
+		byte[] fileData = null;
+		if (Objects.equals(isSignature, "0")) {// 不签章
 			fileData = readInputStream(is);
-		}else if(Objects.equals(isSignature, "1")) {//签章
+		} else if (Objects.equals(isSignature, "1")) {// 签章
 			int x = 100;
 			int y = 290;
-			if(Objects.equals(pdfType, "2")) {
+			if (Objects.equals(pdfType, "2")) {
 				x = -50;
 			}
 			fileData = SignPdf.sign("101012", System.getProperty("user.dir") + "/key/" + "cert.p12", //
 					is, //
 					System.getProperty("user.dir") + "/icon/" + user + ".png", x, y);
 		}
-		
+
 		if (null != fileData && fileData.length > 0) {
 			// 清空response
 			response.reset();
@@ -86,6 +115,8 @@ public class MaoYiDown extends MaoYiAction {
 			file.delete();
 		}
 
+		this.saveLog(cusCiqNo, status, pdfType);
+		return "success";
 	}
 
 	protected byte[] readInputStream(InputStream fis) throws IOException {
